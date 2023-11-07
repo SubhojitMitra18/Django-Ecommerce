@@ -1,0 +1,29 @@
+{% extends 'master.html' %}
+
+{% block body %}
+<section id="form" style="margin-left:30%; margin-top:00%;"><!--form-->
+  <div class="container">
+    <div class="col-sm-4 col-sm-offset-1">
+      <div class="signup-form"><!--login form-->
+        <h2>New User Signup</h2>
+        <form method="post">
+           {% csrf_token %} 
+           {% for field in form %}
+           {{ field.errors }}
+           <p>{{field}}</p>
+           {% endfor %}
+           <button class="btn btn-default" type="submit">Signup</button>
+        </form>
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-success">
+                {{msg}}
+            </div>
+            {% endfor %}
+            {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'master.html' %}
+{% load cart_tag %}
+{% block body %}
+<section id="cart_items">
+	<div class="container">
+		<div class="breadcrumbs">
+			<ol class="breadcrumb">
+			  <li><a href="{% url 'index' %}">Home</a></li>
+			  <li class="active">Shopping Cart</li>
+			</ol>
+		</div>
+		<div class="table-responsive cart_info">
+			<table class="table table-condensed">
+				<thead>
+					<tr class="cart_menu">
+						<td class="image">Item</td>
+						<td class="description"></td>
+						<td class="price">Price</td>
+						<td class="quantity">Quantity</td>
+						<td class="total">Total</td>
+						<td></td>
+					</tr>
+				</thead>
+				<tbody>
+					{% for key,value in request.session.cart.items %}
+					<tr>
+						<td class="cart_product">
+							<a href=""><img src="{{value.image}}" alt="" height="50" width="50"></a>
+						</td>
+						<td class="cart_description">
+							<h4><a href="">{{value.name}}</a></h4>
+							<p></p>
+						</td>
+						<td class="cart_price">
+							<p>₹ {{value.price}}</p>
+						</td>
+						<td class="cart_quantity">
+							<div class="cart_quantity_button">
+								<a class="cart_quantity_up" href="{% url 'item_increment' value.product_id %}"> + </a>
+								<input class="cart_quantity_input" type="text" name="quantity" value="{{value.quantity}}" autocomplete="off" size="2">
+								<a class="cart_quantity_down" href="{% url 'item_decrement' value.product_id %}"> - </a>
+							</div>
+						</td>
+						<td class="cart_total">
+							<p class="cart_total_price">₹ {{value.price|multiply:value.quantity}}</p>
+						</td>
+						<td class="cart_delete">
+							<a class="cart_quantity_delete" href="{% url 'item_clear' key %}"><i class="fa fa-times"></i></a>
+						</td>
+					</tr>
+					{% endfor %}
+					<a href="{% url 'cart_clear' %}">Clear Cart</a>
+				</tbody>
+				<tfoot>
+					<td>
+
+					</td>
+					<td>
+
+					</td>
+					<td>
+						<hr>
+						<h4>Sub Total:</h4>
+					</td>
+					<td>
+
+					</td>
+					<td>
+						<hr>
+						<h4>₹ {{cart_total_amount}}</h4>
+					</td>
+				</tfoot>
+
+			</table>
+		</div>
+		<button  type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo" style="float:right" >Checkout</button>
+	</div>
+</section> <!--/#cart_items-->
+<br>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'checkout' %}">
+			{% csrf_token %}
+			<div class="form-group">
+				<label for="Total-Amount" class="col-form-label">Total Amount:</label>
+				<input type="text" id="cart_total_amount" name="cart_total_amount" value="{{ cart_total_amount }}"> 
+			</div>
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Phone:</label>
+            <input type="text" class="form-control" name="phone" id="recipient-name">
+          </div>
+          <div class="form-group">
+            <label for="message-text" class="col-form-label">Address:</label>
+            <textarea class="form-control" name="address" id="message-text"></textarea>
+          </div>
+		  <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Pincode:</label>
+            <input type="text" class="form-control" name="pincode" id="recipient-name">
+          </div>
+		  <div class="modal-footer">
+			<button id="rzp-button1" type="submit" class="btn btn-primary">Checkout</button>
+		  </div>
+		</div>
+        </form>
+      </div>
+      
+  </div>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+	amount={{cart_total_amount}}*100
+var options = {
+    "key": "rzp_test_rOTTbvdLZWcE6x", // Enter the Key ID generated from the Dashboard
+    "amount":amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+    "currency": "INR",
+    "name": "E Commerce",
+    "description": "Test Transaction",
+    "order_id": "{{payment.id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+    "handler": function (response){
+        alert(response.razorpay_payment_id);
+        alert(response.razorpay_order_id);
+        alert(response.razorpay_signature)
+    },
+    "theme": {
+        "color": "#3399cc"
+    }
+};
+var rzp1 = new Razorpay(options);
+rzp1.on('payment.failed', function (response){
+        alert(response.error.code);
+        alert(response.error.description);
+        alert(response.error.source);
+        alert(response.error.step);
+        alert(response.error.reason);
+        alert(response.error.metadata.order_id);
+        alert(response.error.metadata.payment_id);
+});
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+</script>
+{% endblock %}
